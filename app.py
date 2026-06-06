@@ -102,7 +102,7 @@ def generate_pdf(data):
 
     score_table = Table([
         [Paragraph("IDENTITY TRAJECTORY INDEX™", S("si", fontName="Helvetica-Bold", fontSize=8, textColor=BLUE, leading=11, alignment=TA_CENTER)),
-         Paragraph("CLASSIFICATION", S("si", fontName="Helvetica-Bold", fontSize=8, textColor=BLUE, leading=11, alignment=TA_CENTER))],
+         Paragraph("CLASSIFICATION", S("si2", fontName="Helvetica-Bold", fontSize=8, textColor=BLUE, leading=11, alignment=TA_CENTER))],
         [Paragraph(str(iti_score), sScore),
          Paragraph(str(iti_band), S("cl", fontName="Helvetica-Bold", fontSize=20, textColor=PURPLE, leading=24, alignment=TA_CENTER))],
         [Paragraph("out of 100", sSmall),
@@ -163,8 +163,8 @@ def generate_pdf(data):
         elif sv>=50: sig,col="Developing",BLUE
         else: sig,col="Growth Edge",GOLD
         dim_rows.append([Paragraph(name,sTDb),
-            Paragraph(f"{score} / 100",S("ds",fontName="Helvetica-Bold",fontSize=9,textColor=col,leading=13,alignment=TA_CENTER)),
-            Paragraph(sig,S("sg",fontSize=8.5,textColor=col,leading=13,alignment=TA_CENTER))])
+            Paragraph(f"{score} / 100",S(f"ds{name}",fontName="Helvetica-Bold",fontSize=9,textColor=col,leading=13,alignment=TA_CENTER)),
+            Paragraph(sig,S(f"sg{name}",fontSize=8.5,textColor=col,leading=13,alignment=TA_CENTER))])
 
     dw=[CW*0.55,CW*0.22,CW*0.23]
     dim_table=Table(dim_rows,colWidths=dw,repeatRows=1)
@@ -191,8 +191,8 @@ def generate_pdf(data):
     idx_rows=[[Paragraph("Index",sTH),Paragraph("Score",sTH),Paragraph("Classification",sTH)]]
     for name,score,band,col in indices:
         idx_rows.append([Paragraph(name,sTDb),
-            Paragraph(score,S("is",fontName="Helvetica-Bold",fontSize=9,textColor=col,leading=13,alignment=TA_CENTER)),
-            Paragraph(band,S("ib",fontSize=8.5,textColor=col,leading=13,alignment=TA_CENTER))])
+            Paragraph(score,S(f"is{name}",fontName="Helvetica-Bold",fontSize=9,textColor=col,leading=13,alignment=TA_CENTER)),
+            Paragraph(band,S(f"ib{name}",fontSize=8.5,textColor=col,leading=13,alignment=TA_CENTER))])
 
     idx_table=Table(idx_rows,colWidths=dw,repeatRows=1)
     idx_table.setStyle(TableStyle([
@@ -237,7 +237,6 @@ def generate_pdf(data):
 @app.route("/generate", methods=["POST"])
 def generate():
     try:
-        # Accept both JSON and Form data
         if request.content_type and "application/json" in request.content_type:
             data = request.json
         else:
@@ -249,14 +248,14 @@ def generate():
         pdf_path = generate_pdf(data)
         with open(pdf_path, "rb") as f:
             pdf_bytes = f.read()
-        pdf_base64 = base64.b64encode(pdf_bytes).decode("utf-8")
         os.remove(pdf_path)
-
+        pdf_base64 = base64.b64encode(pdf_bytes).decode("utf-8")
         return jsonify({
             "success": True,
             "pdf_base64": pdf_base64,
             "filename": f"ITI_Report_{data.get('full_name','Participant').replace(' ','_')}.pdf"
         })
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
