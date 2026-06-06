@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.units import mm
@@ -7,8 +7,6 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
 import os
 import uuid
-import base64
-import requests as req
 
 app = Flask(__name__)
 
@@ -32,8 +30,7 @@ def S(name, **kw):
     base.update(kw)
     return ParagraphStyle(name, **base)
 
-def generate_pdf(data):
-    filename = f"/tmp/iti_report_{uuid.uuid4().hex}.pdf"
+def generate_pdf(data, filepath):
     full_name       = data.get("full_name", "Participant")
     organisation    = data.get("organisation", "")
     role_level      = data.get("role_level", "")
@@ -57,7 +54,7 @@ def generate_pdf(data):
     ri_avg          = data.get("ri_avg", "0")
     ai_narrative    = data.get("ai_narrative", "")
 
-    doc = SimpleDocTemplate(filename, pagesize=A4,
+    doc = SimpleDocTemplate(filepath, pagesize=A4,
         leftMargin=18*mm, rightMargin=18*mm,
         topMargin=16*mm, bottomMargin=16*mm)
 
@@ -232,8 +229,10 @@ def generate_pdf(data):
     ]))
     story.append(footer)
     doc.build(story)
-    return filename
 
+
+# Store PDFs in memory temporarily
+pdf_store = {}
 
 @app.route("/generate", methods=["POST"])
 def generate():
@@ -246,25 +245,39 @@ def generate():
         if not data:
             return jsonify({"error": "No data provided"}), 400
 
-        pdf_path = generate_pdf(data)
+        file_id = uuid.uuid4().hex
         filename = f"ITI_Report_{data.get('full_name', 'Participant').replace(' ', '_')}.pdf"
+        filepath = f"/tmp/{file_id}.pdf"
 
-        with open(pdf_path, "rb") as f:
-            response = req.put(
-                f"https://transfer.sh/{filename}",
-                data=f,
-                headers={"Max-Days": "14"}
-            )
-        os.remove(pdf_path)
+        generate_pdf(data, filepath)
+
+        with open(filepath, "rb") as f:
+            pdf_store[file_id] = f.read()
+        os.remove(filepath)
+
+        host = request.host_url.rstrip("/")
+        pdf_url = f"{host}/download/{file_id}/{filename}"
 
         return jsonify({
             "success": True,
-            "pdf_url": response.text.strip(),
+            "pdf_url": pdf_url,
             "filename": filename
         })
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/download/<file_id>/<filename>", methods=["GET"])
+def download(file_id, filename):
+    if file_id not in pdf_store:
+        return jsonify({"error": "File not found"}), 404
+    from flask import Response
+    return Response(
+        pdf_store[file_id],
+        mimetype="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
 
 
 @app.route("/health", methods=["GET"])
