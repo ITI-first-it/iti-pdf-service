@@ -247,14 +247,14 @@ def generate():
             return jsonify({"error": "No data provided"}), 400
 
         pdf_path = generate_pdf(data)
-        import requests as req
         with open(pdf_path, "rb") as f:
-            response = req.post("https://file.io", files={"file": f})
+            pdf_bytes = f.read()
+        pdf_base64 = base64.b64encode(pdf_bytes).decode("utf-8")
         os.remove(pdf_path)
-        result = response.json()
+
         return jsonify({
             "success": True,
-            "pdf_url": result.get("link"),
+            "pdf_base64": pdf_base64,
             "filename": f"ITI_Report_{data.get('full_name','Participant').replace(' ','_')}.pdf"
         })
     except Exception as e:
