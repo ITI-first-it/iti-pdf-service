@@ -8,6 +8,7 @@ from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
 import os
 import uuid
 import base64
+import requests as req
 
 app = Flask(__name__)
 
@@ -246,14 +247,20 @@ def generate():
             return jsonify({"error": "No data provided"}), 400
 
         pdf_path = generate_pdf(data)
+        filename = f"ITI_Report_{data.get('full_name', 'Participant').replace(' ', '_')}.pdf"
+
         with open(pdf_path, "rb") as f:
-            pdf_bytes = f.read()
+            response = req.put(
+                f"https://transfer.sh/{filename}",
+                data=f,
+                headers={"Max-Days": "14"}
+            )
         os.remove(pdf_path)
-        pdf_base64 = base64.b64encode(pdf_bytes).decode("utf-8")
+
         return jsonify({
             "success": True,
-            "pdf_base64": pdf_base64,
-            "filename": f"ITI_Report_{data.get('full_name','Participant').replace(' ','_')}.pdf"
+            "pdf_url": response.text.strip(),
+            "filename": filename
         })
 
     except Exception as e:
