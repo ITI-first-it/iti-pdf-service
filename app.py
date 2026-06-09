@@ -30,9 +30,18 @@ def S(name, **kw):
     base.update(kw)
     return ParagraphStyle(name, **base)
 
+def fmt(v):
+    try:
+        f = float(v)
+        if f == int(f):
+            return str(int(f))
+        return str(round(f, 1))
+    except:
+        return str(v)
+
 def format_narrative(text):
     if not text:
-        return []
+        return [Paragraph("", S("empty"))]
 
     sections = [
         "IDENTITY SNAPSHOT",
@@ -42,23 +51,26 @@ def format_narrative(text):
         "RETENTION SIGNAL"
     ]
 
-    sHeader = S("nh", fontName="Helvetica-Bold", fontSize=10, textColor=PURPLE, leading=14, spaceBefore=10, spaceAfter=4)
-    sBody   = S("nb", fontSize=9.5, leading=15, textColor=MID, spaceAfter=6)
+    sHeader = S("nh", fontName="Helvetica-Bold", fontSize=10, textColor=PURPLE, leading=14, spaceBefore=8, spaceAfter=4)
+    sBody   = S("nb", fontSize=9.5, leading=15, textColor=MID, spaceAfter=4)
 
     paragraphs = []
     current_text = text
 
-    for i, section in enumerate(sections):
+    for section in sections:
         if section in current_text:
             parts = current_text.split(section, 1)
-            if parts[0].strip():
-                paragraphs.append(Paragraph(parts[0].strip(), sBody))
+            before = parts[0].strip()
+            if before:
+                for line in before.split('\n'):
+                    line = line.strip()
+                    if line:
+                        paragraphs.append(Paragraph(line, sBody))
             paragraphs.append(Paragraph(section, sHeader))
             current_text = parts[1] if len(parts) > 1 else ""
 
     if current_text.strip():
-        lines = current_text.strip().split('\n')
-        for line in lines:
+        for line in current_text.strip().split('\n'):
             line = line.strip()
             if line:
                 paragraphs.append(Paragraph(line, sBody))
@@ -73,23 +85,23 @@ def generate_pdf(data, filepath):
     organisation    = data.get("organisation", "")
     role_level      = data.get("role_level", "")
     submission_date = data.get("submission_date", "")
-    iti_score       = data.get("iti_score", "0")
+    iti_score       = fmt(data.get("iti_score", "0"))
     iti_band        = data.get("iti_band", "")
-    avs             = data.get("avs", "0")
+    avs             = fmt(data.get("avs", "0"))
     avs_band        = data.get("avs_band", "")
-    rss             = data.get("rss", "0")
-    rrs             = data.get("rrs", "0")
+    rss             = fmt(data.get("rss", "0"))
+    rrs             = fmt(data.get("rrs", "0"))
     rrs_band        = data.get("rrs_band", "")
-    igd             = data.get("igd", "0")
+    igd             = fmt(data.get("igd", "0"))
     igd_band        = data.get("igd_band", "")
-    sa_avg          = data.get("sa_avg", "0")
-    vv_avg          = data.get("vv_avg", "0")
-    co_avg          = data.get("co_avg", "0")
-    fa_avg          = data.get("fa_avg", "0")
-    ab_avg          = data.get("ab_avg", "0")
-    dp_avg          = data.get("dp_avg", "0")
-    al_avg          = data.get("al_avg", "0")
-    ri_avg          = data.get("ri_avg", "0")
+    sa_avg          = fmt(data.get("sa_avg", "0"))
+    vv_avg          = fmt(data.get("vv_avg", "0"))
+    co_avg          = fmt(data.get("co_avg", "0"))
+    fa_avg          = fmt(data.get("fa_avg", "0"))
+    ab_avg          = fmt(data.get("ab_avg", "0"))
+    dp_avg          = fmt(data.get("dp_avg", "0"))
+    al_avg          = fmt(data.get("al_avg", "0"))
+    ri_avg          = fmt(data.get("ri_avg", "0"))
     ai_narrative    = data.get("ai_narrative", "")
 
     doc = SimpleDocTemplate(filepath, pagesize=A4,
@@ -106,7 +118,8 @@ def generate_pdf(data, filepath):
 
     story = []
 
-    logo_path = os.path.join(os.path.dirname(__file__), "logo.jpg")
+    # Logo - white PNG with correct aspect ratio
+    logo_path = os.path.join(os.path.dirname(__file__), "logo.png")
     logo_width = 55*mm
     logo_height = 55*mm * (3375/6000)
     logo = Image(logo_path, width=logo_width, height=logo_height)
@@ -172,8 +185,10 @@ def generate_pdf(data, filepath):
          Paragraph(str(iti_score),S("hv2",fontName="Helvetica-Bold",fontSize=22,textColor=PURPLE,leading=26,alignment=TA_CENTER)),
          Paragraph(str(avs),S("hv3",fontName="Helvetica-Bold",fontSize=22,textColor=GREEN,leading=26,alignment=TA_CENTER)),
          Paragraph(str(rss),S("hv4",fontName="Helvetica-Bold",fontSize=22,textColor=BLUE,leading=26,alignment=TA_CENTER))],
-        [Paragraph("Dimensions\nAssessed",sSmall),Paragraph("Overall\nIdentity Trajectory Intelligence Score",sSmall),
-         Paragraph("Advancement\nVelocity",sSmall),Paragraph("Retention\nStability",sSmall)],
+        [Paragraph("Dimensions\nAssessed",sSmall),
+         Paragraph("Overall\nIdentity Trajectory Intelligence Score",sSmall),
+         Paragraph("Advancement\nVelocity",sSmall),
+         Paragraph("Retention\nStability",sSmall)],
     ], colWidths=[hw,hw,hw,hw])
     hl_table.setStyle(TableStyle([
         ("BACKGROUND",(0,0),(-1,-1),WHITE),("TOPPADDING",(0,0),(-1,-1),10),
@@ -246,10 +261,11 @@ def generate_pdf(data, filepath):
     story.append(Paragraph("Your Personalised Identity Trajectory Intelligence Report", sH1))
     story.append(HRFlowable(width="100%", thickness=1.5, color=PURPLE, spaceAfter=8))
 
-    narrative_content = format_narrative(str(ai_narrative))
+    narrative_paragraphs = format_narrative(str(ai_narrative))
 
     narr_header = Table([
-        [Paragraph("AI-Generated Identity Trajectory Intelligence Narrative", S("nt", fontName="Helvetica-Bold", fontSize=10, textColor=WHITE, leading=14))],
+        [Paragraph("AI-Generated Identity Trajectory Intelligence Narrative",
+            S("nt", fontName="Helvetica-Bold", fontSize=10, textColor=WHITE, leading=14))],
     ], colWidths=[CW])
     narr_header.setStyle(TableStyle([
         ("BACKGROUND",(0,0),(-1,-1),PURPLE),
@@ -259,17 +275,17 @@ def generate_pdf(data, filepath):
     ]))
     story.append(narr_header)
 
-    narr_body = Table([
-        [narrative_content],
-    ], colWidths=[CW])
-    narr_body.setStyle(TableStyle([
-        ("BACKGROUND",(0,0),(-1,-1),WHITE),
-        ("TOPPADDING",(0,0),(-1,-1),10),("BOTTOMPADDING",(0,0),(-1,-1),10),
-        ("LEFTPADDING",(0,0),(-1,-1),12),("RIGHTPADDING",(0,0),(-1,-1),12),
-        ("LINEBEFORE",(0,0),(0,-1),2,BLUE),
-        ("LINEBELOW",(0,-1),(-1,-1),0.5,BORDER),
-    ]))
-    story.append(narr_body)
+    # Narrative body — each paragraph rendered individually for proper spacing
+    for para in narrative_paragraphs:
+        narr_row = Table([[para]], colWidths=[CW])
+        narr_row.setStyle(TableStyle([
+            ("BACKGROUND",(0,0),(-1,-1),WHITE),
+            ("TOPPADDING",(0,0),(-1,-1),4),("BOTTOMPADDING",(0,0),(-1,-1),4),
+            ("LEFTPADDING",(0,0),(-1,-1),12),("RIGHTPADDING",(0,0),(-1,-1),12),
+            ("LINEBEFORE",(0,0),(0,-1),2,BLUE),
+        ]))
+        story.append(narr_row)
+
     story.append(Spacer(1,12))
 
     footer=Table([[Paragraph(
