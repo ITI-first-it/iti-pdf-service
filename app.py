@@ -277,7 +277,7 @@ def generate_pdf(data, filepath):
     story.append(Spacer(1,12))
 
     footer=Table([[Paragraph(
-        f"CONFIDENTIAL  |  Identity Trajectory Intelligence™  |  Powered by IAMWHOISAYIAM™  |  {submission_date}",
+        f"CONFIDENTIAL  |  Identity Trajectory Intelligence™  |  © 2026 I AM WHO I SAY I AM.Global  |  {submission_date}",
         sFooter)]],colWidths=[CW])
     footer.setStyle(TableStyle([
         ("BACKGROUND",(0,0),(-1,-1),PURPLE),
