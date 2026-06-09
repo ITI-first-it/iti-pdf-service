@@ -7,6 +7,7 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
 import os
 import uuid
+import re
 
 app = Flask(__name__)
 
@@ -39,9 +40,19 @@ def fmt(v):
     except:
         return str(v)
 
+def clean_narrative(text):
+    """Strip HTML tags and convert to plain text for PDF rendering."""
+    text = text.replace("<br><br>", "\n\n")
+    text = text.replace("<br>", "\n")
+    text = re.sub(r'<[^>]+>', '', text)
+    return text.strip()
+
 def format_narrative(text):
     if not text:
         return [Paragraph("", S("empty"))]
+
+    # Clean any HTML tags first
+    text = clean_narrative(text)
 
     sections = [
         "IDENTITY SNAPSHOT",
@@ -118,7 +129,6 @@ def generate_pdf(data, filepath):
 
     story = []
 
-    # Logo - white PNG with correct aspect ratio
     logo_path = os.path.join(os.path.dirname(__file__), "logo.png")
     logo_width = 55*mm
     logo_height = 55*mm * (3375/6000)
@@ -275,7 +285,6 @@ def generate_pdf(data, filepath):
     ]))
     story.append(narr_header)
 
-    # Narrative body — each paragraph rendered individually for proper spacing
     for para in narrative_paragraphs:
         narr_row = Table([[para]], colWidths=[CW])
         narr_row.setStyle(TableStyle([
