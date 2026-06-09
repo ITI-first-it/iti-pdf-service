@@ -30,6 +30,46 @@ def S(name, **kw):
     base.update(kw)
     return ParagraphStyle(name, **base)
 
+def format_narrative(text):
+    """Convert plain text narrative into formatted paragraphs with section headers."""
+    if not text:
+        return []
+    
+    sections = [
+        "IDENTITY SNAPSHOT",
+        "TRAJECTORY ANALYSIS", 
+        "TOP 3 GROWTH EDGES",
+        "ADVANCEMENT OPPORTUNITY",
+        "RETENTION SIGNAL"
+    ]
+    
+    sHeader = S("nh", fontName="Helvetica-Bold", fontSize=10, textColor=PURPLE, leading=14, spaceBefore=10, spaceAfter=4)
+    sBody   = S("nb", fontSize=9.5, leading=15, textColor=MID, spaceAfter=6)
+    
+    paragraphs = []
+    current_text = text
+    
+    for i, section in enumerate(sections):
+        if section in current_text:
+            parts = current_text.split(section, 1)
+            if parts[0].strip():
+                paragraphs.append(Paragraph(parts[0].strip(), sBody))
+            paragraphs.append(Paragraph(section, sHeader))
+            current_text = parts[1] if len(parts) > 1 else ""
+    
+    if current_text.strip():
+        # Split remaining text into numbered points if it contains numbers
+        lines = current_text.strip().split('\n')
+        for line in lines:
+            line = line.strip()
+            if line:
+                paragraphs.append(Paragraph(line, sBody))
+    
+    if not paragraphs:
+        paragraphs.append(Paragraph(text, sBody))
+    
+    return paragraphs
+
 def generate_pdf(data, filepath):
     full_name       = data.get("full_name", "Participant")
     organisation    = data.get("organisation", "")
@@ -68,8 +108,11 @@ def generate_pdf(data, filepath):
 
     story = []
 
+    # FIX 1: Logo - preserve aspect ratio (logo is wide, use 55mm wide, auto height)
     logo_path = os.path.join(os.path.dirname(__file__), "logo.jpg")
-    logo = Image(logo_path, width=60*mm, height=14*mm)
+    logo_width = 55*mm
+    logo_height = 55*mm * (3375/6000)  # preserve original aspect ratio
+    logo = Image(logo_path, width=logo_width, height=logo_height)
 
     header_table = Table([[logo,
         Paragraph("IDENTITY TRAJECTORY INTELLIGENCE™<br/>Assessment Report",
@@ -77,7 +120,7 @@ def generate_pdf(data, filepath):
     ]], colWidths=[65*mm, CW-65*mm])
     header_table.setStyle(TableStyle([
         ("BACKGROUND",(0,0),(-1,-1),PURPLE),
-        ("TOPPADDING",(0,0),(-1,-1),14),("BOTTOMPADDING",(0,0),(-1,-1),14),
+        ("TOPPADDING",(0,0),(-1,-1),10),("BOTTOMPADDING",(0,0),(-1,-1),10),
         ("LEFTPADDING",(0,0),(-1,-1),14),("RIGHTPADDING",(0,0),(-1,-1),14),
         ("VALIGN",(0,0),(-1,-1),"MIDDLE"),
     ]))
@@ -206,17 +249,31 @@ def generate_pdf(data, filepath):
     story.append(Paragraph("Your Personalised ITI Report", sH1))
     story.append(HRFlowable(width="100%", thickness=1.5, color=PURPLE, spaceAfter=8))
 
-    narr_box=Table([
-        [Paragraph("AI-Generated Narrative Report",S("nt",fontName="Helvetica-Bold",fontSize=10,textColor=WHITE,leading=14))],
-        [Paragraph(str(ai_narrative),sNarr)],
-    ],colWidths=[CW])
-    narr_box.setStyle(TableStyle([
-        ("BACKGROUND",(0,0),(0,0),PURPLE),("BACKGROUND",(0,1),(0,1),WHITE),
+    # FIX 2: Format narrative with proper section breaks
+    narrative_content = format_narrative(str(ai_narrative))
+    
+    narr_header = Table([
+        [Paragraph("AI-Generated Narrative Report", S("nt", fontName="Helvetica-Bold", fontSize=10, textColor=WHITE, leading=14))],
+    ], colWidths=[CW])
+    narr_header.setStyle(TableStyle([
+        ("BACKGROUND",(0,0),(-1,-1),PURPLE),
         ("TOPPADDING",(0,0),(-1,-1),9),("BOTTOMPADDING",(0,0),(-1,-1),9),
         ("LEFTPADDING",(0,0),(-1,-1),12),("RIGHTPADDING",(0,0),(-1,-1),12),
-        ("LINEBEFORE",(0,0),(0,-1),2,BLUE),("LINEBELOW",(0,-1),(-1,-1),0.5,BORDER),
+        ("LINEBEFORE",(0,0),(0,-1),2,BLUE),
     ]))
-    story.append(KeepTogether(narr_box))
+    story.append(narr_header)
+    
+    narr_body = Table([
+        [narrative_content],
+    ], colWidths=[CW])
+    narr_body.setStyle(TableStyle([
+        ("BACKGROUND",(0,0),(-1,-1),WHITE),
+        ("TOPPADDING",(0,0),(-1,-1),10),("BOTTOMPADDING",(0,0),(-1,-1),10),
+        ("LEFTPADDING",(0,0),(-1,-1),12),("RIGHTPADDING",(0,0),(-1,-1),12),
+        ("LINEBEFORE",(0,0),(0,-1),2,BLUE),
+        ("LINEBELOW",(0,-1),(-1,-1),0.5,BORDER),
+    ]))
+    story.append(narr_body)
     story.append(Spacer(1,12))
 
     footer=Table([[Paragraph(
@@ -231,7 +288,6 @@ def generate_pdf(data, filepath):
     doc.build(story)
 
 
-# Store PDFs in memory temporarily
 pdf_store = {}
 
 @app.route("/generate", methods=["POST"])
