@@ -31,24 +31,23 @@ def S(name, **kw):
     return ParagraphStyle(name, **base)
 
 def format_narrative(text):
-    """Convert plain text narrative into formatted paragraphs with section headers."""
     if not text:
         return []
-    
+
     sections = [
         "IDENTITY SNAPSHOT",
-        "TRAJECTORY ANALYSIS", 
+        "TRAJECTORY ANALYSIS",
         "TOP 3 GROWTH EDGES",
         "ADVANCEMENT OPPORTUNITY",
         "RETENTION SIGNAL"
     ]
-    
+
     sHeader = S("nh", fontName="Helvetica-Bold", fontSize=10, textColor=PURPLE, leading=14, spaceBefore=10, spaceAfter=4)
     sBody   = S("nb", fontSize=9.5, leading=15, textColor=MID, spaceAfter=6)
-    
+
     paragraphs = []
     current_text = text
-    
+
     for i, section in enumerate(sections):
         if section in current_text:
             parts = current_text.split(section, 1)
@@ -56,18 +55,17 @@ def format_narrative(text):
                 paragraphs.append(Paragraph(parts[0].strip(), sBody))
             paragraphs.append(Paragraph(section, sHeader))
             current_text = parts[1] if len(parts) > 1 else ""
-    
+
     if current_text.strip():
-        # Split remaining text into numbered points if it contains numbers
         lines = current_text.strip().split('\n')
         for line in lines:
             line = line.strip()
             if line:
                 paragraphs.append(Paragraph(line, sBody))
-    
+
     if not paragraphs:
         paragraphs.append(Paragraph(text, sBody))
-    
+
     return paragraphs
 
 def generate_pdf(data, filepath):
@@ -108,10 +106,9 @@ def generate_pdf(data, filepath):
 
     story = []
 
-    # FIX 1: Logo - preserve aspect ratio (logo is wide, use 55mm wide, auto height)
     logo_path = os.path.join(os.path.dirname(__file__), "logo.jpg")
     logo_width = 55*mm
-    logo_height = 55*mm * (3375/6000)  # preserve original aspect ratio
+    logo_height = 55*mm * (3375/6000)
     logo = Image(logo_path, width=logo_width, height=logo_height)
 
     header_table = Table([[logo,
@@ -159,7 +156,7 @@ def generate_pdf(data, filepath):
     story.append(Spacer(1,8))
 
     story.append(Table([[Paragraph(
-        "Your ITI assessment reveals where you are on your identity and advancement journey. "
+        "Your Identity Trajectory Intelligence assessment reveals where you are on your identity and advancement journey. "
         "Review your scores, growth edges, and personalised narrative below.", sNarr)
     ]], colWidths=[CW], style=TableStyle([
         ("BACKGROUND",(0,0),(-1,-1),LIGHT_BG),
@@ -175,7 +172,7 @@ def generate_pdf(data, filepath):
          Paragraph(str(iti_score),S("hv2",fontName="Helvetica-Bold",fontSize=22,textColor=PURPLE,leading=26,alignment=TA_CENTER)),
          Paragraph(str(avs),S("hv3",fontName="Helvetica-Bold",fontSize=22,textColor=GREEN,leading=26,alignment=TA_CENTER)),
          Paragraph(str(rss),S("hv4",fontName="Helvetica-Bold",fontSize=22,textColor=BLUE,leading=26,alignment=TA_CENTER))],
-        [Paragraph("Dimensions\nAssessed",sSmall),Paragraph("Overall\nITI Score",sSmall),
+        [Paragraph("Dimensions\nAssessed",sSmall),Paragraph("Overall\nIdentity Trajectory Intelligence Score",sSmall),
          Paragraph("Advancement\nVelocity",sSmall),Paragraph("Retention\nStability",sSmall)],
     ], colWidths=[hw,hw,hw,hw])
     hl_table.setStyle(TableStyle([
@@ -188,7 +185,7 @@ def generate_pdf(data, filepath):
     story.append(hl_table)
     story.append(Spacer(1,12))
 
-    story.append(Paragraph("Core ITI Dimensions", sH1))
+    story.append(Paragraph("Core Identity Trajectory Intelligence Dimensions", sH1))
     story.append(HRFlowable(width="100%", thickness=1.5, color=PURPLE, spaceAfter=8))
 
     dims = [("Self-Authority",sa_avg),("Visibility & Voice",vv_avg),
@@ -224,10 +221,10 @@ def generate_pdf(data, filepath):
 
     indices=[
         ("Identity Trajectory Index™",f"{iti_score} / 100",iti_band,PURPLE),
-        ("Advancement Velocity Score™",f"{avs} / 100",avs_band,GREEN),
-        ("Retention Stability Score™",f"{rss} / 100","Stable",BLUE),
-        ("Retention Risk Score™",f"{rrs} / 100",rrs_band,GREEN),
-        ("Identity Gap Differential™",str(igd),igd_band,GOLD),
+        ("Advancement Velocity Score",f"{avs} / 100",avs_band,GREEN),
+        ("Retention Stability Score",f"{rss} / 100","Stable",BLUE),
+        ("Retention Risk Score",f"{rrs} / 100",rrs_band,GREEN),
+        ("Identity Gap Differential",str(igd),igd_band,GOLD),
     ]
     idx_rows=[[Paragraph("Index",sTH),Paragraph("Score",sTH),Paragraph("Classification",sTH)]]
     for name,score,band,col in indices:
@@ -246,14 +243,13 @@ def generate_pdf(data, filepath):
     story.append(idx_table)
     story.append(Spacer(1,12))
 
-    story.append(Paragraph("Your Personalised ITI Report", sH1))
+    story.append(Paragraph("Your Personalised Identity Trajectory Intelligence Report", sH1))
     story.append(HRFlowable(width="100%", thickness=1.5, color=PURPLE, spaceAfter=8))
 
-    # FIX 2: Format narrative with proper section breaks
     narrative_content = format_narrative(str(ai_narrative))
-    
+
     narr_header = Table([
-        [Paragraph("AI-Generated Narrative Report", S("nt", fontName="Helvetica-Bold", fontSize=10, textColor=WHITE, leading=14))],
+        [Paragraph("AI-Generated Identity Trajectory Intelligence Narrative", S("nt", fontName="Helvetica-Bold", fontSize=10, textColor=WHITE, leading=14))],
     ], colWidths=[CW])
     narr_header.setStyle(TableStyle([
         ("BACKGROUND",(0,0),(-1,-1),PURPLE),
@@ -262,7 +258,7 @@ def generate_pdf(data, filepath):
         ("LINEBEFORE",(0,0),(0,-1),2,BLUE),
     ]))
     story.append(narr_header)
-    
+
     narr_body = Table([
         [narrative_content],
     ], colWidths=[CW])
