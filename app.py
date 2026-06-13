@@ -11,17 +11,17 @@ import re
 
 app = Flask(__name__)
 
-PURPLE    = colors.HexColor("#32215C")
-BLUE      = colors.HexColor("#0092D4")
-BLUE_LT   = colors.HexColor("#E6F4FC")
+PURPLE = colors.HexColor("#32215C")
+BLUE = colors.HexColor("#0092D4")
+BLUE_LT = colors.HexColor("#E6F4FC")
 PURPLE_LT = colors.HexColor("#F0EDF8")
-WHITE     = colors.white
-DARK      = colors.HexColor("#1A1A2E")
-MID       = colors.HexColor("#4A4A6A")
-LIGHT_BG  = colors.HexColor("#F8F8FC")
-GREEN     = colors.HexColor("#27AE60")
-GOLD      = colors.HexColor("#F5A623")
-BORDER    = colors.HexColor("#D0C8E8")
+WHITE = colors.white
+DARK = colors.HexColor("#1A1A2E")
+MID = colors.HexColor("#4A4A6A")
+LIGHT_BG = colors.HexColor("#F8F8FC")
+GREEN = colors.HexColor("#27AE60")
+GOLD = colors.HexColor("#F5A623")
+BORDER = colors.HexColor("#D0C8E8")
 
 W, H = A4
 CW = W - 36*mm
@@ -63,7 +63,7 @@ def format_narrative(text):
     ]
 
     sHeader = S("nh", fontName="Helvetica-Bold", fontSize=10, textColor=PURPLE, leading=14, spaceBefore=8, spaceAfter=4)
-    sBody   = S("nb", fontSize=9.5, leading=15, textColor=MID, spaceAfter=4)
+    sBody = S("nb", fontSize=9.5, leading=15, textColor=MID, spaceAfter=4)
 
     paragraphs = []
     current_text = text
@@ -92,39 +92,39 @@ def format_narrative(text):
     return paragraphs
 
 def generate_pdf(data, filepath):
-    full_name       = data.get("full_name", "Participant")
-    organisation    = data.get("organisation", "")
-    role_level      = data.get("role_level", "")
+    full_name = data.get("full_name", "Participant")
+    organisation = data.get("organisation", "")
+    role_level = data.get("role_level", "")
     submission_date = data.get("submission_date", "")
-    iti_score       = fmt(data.get("iti_score", "0"))
-    iti_band        = data.get("iti_band", "")
-    avs             = fmt(data.get("avs", "0"))
-    avs_band        = data.get("avs_band", "")
-    rss             = fmt(data.get("rss", "0"))
-    rrs             = fmt(data.get("rrs", "0"))
-    rrs_band        = data.get("rrs_band", "")
-    igd             = fmt(data.get("igd", "0"))
-    igd_band        = data.get("igd_band", "")
-    sa_avg          = fmt(data.get("sa_avg", "0"))
-    vv_avg          = fmt(data.get("vv_avg", "0"))
-    co_avg          = fmt(data.get("co_avg", "0"))
-    fa_avg          = fmt(data.get("fa_avg", "0"))
-    ab_avg          = fmt(data.get("ab_avg", "0"))
-    dp_avg          = fmt(data.get("dp_avg", "0"))
-    al_avg          = fmt(data.get("al_avg", "0"))
-    ri_avg          = fmt(data.get("ri_avg", "0"))
-    ai_narrative    = data.get("ai_narrative", "")
+    iti_score = fmt(data.get("iti_score", "0"))
+    iti_band = data.get("iti_band", "")
+    avs = fmt(data.get("avs", "0"))
+    avs_band = data.get("avs_band", "")
+    rss = fmt(data.get("rss", "0"))
+    rrs = fmt(data.get("rrs", "0"))
+    rrs_band = data.get("rrs_band", "")
+    igd = fmt(data.get("igd", "0"))
+    igd_band = data.get("igd_band", "")
+    sa_avg = fmt(data.get("sa_avg", "0"))
+    vv_avg = fmt(data.get("vv_avg", "0"))
+    co_avg = fmt(data.get("co_avg", "0"))
+    fa_avg = fmt(data.get("fa_avg", "0"))
+    ab_avg = fmt(data.get("ab_avg", "0"))
+    dp_avg = fmt(data.get("dp_avg", "0"))
+    al_avg = fmt(data.get("al_avg", "0"))
+    ri_avg = fmt(data.get("ri_avg", "0"))
+    ai_narrative = data.get("ai_narrative", "")
 
     doc = SimpleDocTemplate(filepath, pagesize=A4,
-        leftMargin=18*mm, rightMargin=18*mm,
-        topMargin=16*mm, bottomMargin=16*mm)
+                            leftMargin=18*mm, rightMargin=18*mm,
+                            topMargin=16*mm, bottomMargin=16*mm)
 
-    sScore  = S("sc", fontName="Helvetica-Bold", fontSize=28, textColor=PURPLE, leading=32, alignment=TA_CENTER)
-    sSmall  = S("sm", fontSize=7.5, textColor=colors.HexColor("#8888AA"), leading=11, alignment=TA_CENTER)
-    sTH     = S("th", fontName="Helvetica-Bold", fontSize=8.5, textColor=WHITE, leading=12, alignment=TA_CENTER)
-    sTDb    = S("tb", fontName="Helvetica-Bold", fontSize=9, leading=13, textColor=DARK)
-    sNarr   = S("nr", fontSize=9.5, leading=15, textColor=MID)
-    sH1     = S("h1", fontName="Helvetica-Bold", fontSize=13, textColor=PURPLE, leading=18, spaceBefore=4)
+    sScore = S("sc", fontName="Helvetica-Bold", fontSize=28, textColor=PURPLE, leading=32, alignment=TA_CENTER)
+    sSmall = S("sm", fontSize=7.5, textColor=colors.HexColor("#8888AA"), leading=11, alignment=TA_CENTER)
+    sTH = S("th", fontName="Helvetica-Bold", fontSize=8.5, textColor=WHITE, leading=12, alignment=TA_CENTER)
+    sTDb = S("tb", fontName="Helvetica-Bold", fontSize=9, leading=13, textColor=DARK)
+    sNarr = S("nr", fontSize=9.5, leading=15, textColor=MID)
+    sH1 = S("h1", fontName="Helvetica-Bold", fontSize=13, textColor=PURPLE, leading=18, spaceBefore=4)
     sFooter = S("ft", fontSize=7.5, textColor=colors.HexColor("#9090B0"), leading=11, alignment=TA_CENTER)
 
     story = []
@@ -137,7 +137,7 @@ def generate_pdf(data, filepath):
     header_table = Table([[logo,
         Paragraph("IDENTITY TRAJECTORY INTELLIGENCE™<br/>Assessment Report",
             S("hr", fontName="Helvetica-Bold", fontSize=14, textColor=WHITE, leading=20, alignment=TA_RIGHT))
-    ]], colWidths=[65*mm, CW-65*mm])
+        ]], colWidths=[65*mm, CW-65*mm])
     header_table.setStyle(TableStyle([
         ("BACKGROUND",(0,0),(-1,-1),PURPLE),
         ("TOPPADDING",(0,0),(-1,-1),10),("BOTTOMPADDING",(0,0),(-1,-1),10),
@@ -148,9 +148,9 @@ def generate_pdf(data, filepath):
     story.append(Spacer(1,6))
 
     info_bar = Table([[Paragraph(
-        f"{full_name}  |  {role_level}  |  {organisation}  |  {submission_date}",
+        f"{full_name} | {role_level} | {organisation} | {submission_date}",
         S("ib", fontSize=9, textColor=WHITE, leading=13, alignment=TA_CENTER))
-    ]], colWidths=[CW])
+        ]], colWidths=[CW])
     info_bar.setStyle(TableStyle([
         ("BACKGROUND",(0,0),(-1,-1),BLUE),
         ("TOPPADDING",(0,0),(-1,-1),8),("BOTTOMPADDING",(0,0),(-1,-1),8),
@@ -181,7 +181,7 @@ def generate_pdf(data, filepath):
     story.append(Table([[Paragraph(
         "Your Identity Trajectory Intelligence assessment reveals where you are on your identity and advancement journey. "
         "Review your scores, growth edges, and personalised narrative below.", sNarr)
-    ]], colWidths=[CW], style=TableStyle([
+        ]], colWidths=[CW], style=TableStyle([
         ("BACKGROUND",(0,0),(-1,-1),LIGHT_BG),
         ("TOPPADDING",(0,0),(-1,-1),10),("BOTTOMPADDING",(0,0),(-1,-1),10),
         ("LEFTPADDING",(0,0),(-1,-1),12),("RIGHTPADDING",(0,0),(-1,-1),12),
@@ -251,6 +251,7 @@ def generate_pdf(data, filepath):
         ("Retention Risk Score",f"{rrs} / 100",rrs_band,GREEN),
         ("Identity Gap Differential",str(igd),igd_band,GOLD),
     ]
+
     idx_rows=[[Paragraph("Index",sTH),Paragraph("Score",sTH),Paragraph("Classification",sTH)]]
     for name,score,band,col in indices:
         idx_rows.append([Paragraph(name,sTDb),
@@ -298,8 +299,185 @@ def generate_pdf(data, filepath):
     story.append(Spacer(1,12))
 
     footer=Table([[Paragraph(
-        f"CONFIDENTIAL  |  Identity Trajectory Intelligence™  |  © 2026 I AM WHO I SAY I AM.Global  |  {submission_date}",
+        f"CONFIDENTIAL | Identity Trajectory Intelligence™ | © 2026 I AM WHO I SAY I AM.Global | {submission_date}",
         sFooter)]],colWidths=[CW])
+    footer.setStyle(TableStyle([
+        ("BACKGROUND",(0,0),(-1,-1),PURPLE),
+        ("TOPPADDING",(0,0),(-1,-1),10),("BOTTOMPADDING",(0,0),(-1,-1),10),
+        ("LEFTPADDING",(0,0),(-1,-1),14),("RIGHTPADDING",(0,0),(-1,-1),14),
+    ]))
+    story.append(footer)
+    doc.build(story)
+
+
+def generate_executive_pdf(data, filepath):
+    organisation = data.get("organisation", "Organisation")
+    report_date = data.get("report_date", "")
+    total_members = data.get("total_members", "0")
+    avg_iti = fmt(data.get("avg_iti", "0"))
+    avg_iti_band = data.get("avg_iti_band", "")
+    avg_avs = fmt(data.get("avg_avs", "0"))
+    avg_avs_band = data.get("avg_avs_band", "")
+    avg_rss = fmt(data.get("avg_rss", "0"))
+    avg_rrs = fmt(data.get("avg_rrs", "0"))
+    avg_rrs_band = data.get("avg_rrs_band", "")
+    avg_igd = fmt(data.get("avg_igd", "0"))
+    avg_igd_band = data.get("avg_igd_band", "")
+    high_flight_risk = data.get("high_flight_risk", "0")
+
+    doc = SimpleDocTemplate(filepath, pagesize=A4,
+        leftMargin=18*mm, rightMargin=18*mm,
+        topMargin=16*mm, bottomMargin=16*mm)
+
+    sScore = S("sc2", fontName="Helvetica-Bold", fontSize=28, textColor=PURPLE, leading=32, alignment=TA_CENTER)
+    sSmall = S("sm2", fontSize=7.5, textColor=colors.HexColor("#8888AA"), leading=11, alignment=TA_CENTER)
+    sTH = S("th2", fontName="Helvetica-Bold", fontSize=8.5, textColor=WHITE, leading=12, alignment=TA_CENTER)
+    sTDb = S("tb2", fontName="Helvetica-Bold", fontSize=9, leading=13, textColor=DARK)
+    sH1 = S("h12", fontName="Helvetica-Bold", fontSize=13, textColor=PURPLE, leading=18, spaceBefore=4)
+    sFooter = S("ft2", fontSize=7.5, textColor=colors.HexColor("#9090B0"), leading=11, alignment=TA_CENTER)
+
+    story = []
+
+    logo_path = os.path.join(os.path.dirname(__file__), "logo.png")
+    logo_width = 55*mm
+    logo_height = 55*mm * (3375/6000)
+    logo = Image(logo_path, width=logo_width, height=logo_height)
+
+    header_table = Table([[logo,
+        Paragraph("IDENTITY TRAJECTORY INTELLIGENCE™<br/>Executive Cohort Report",
+            S("hr2", fontName="Helvetica-Bold", fontSize=14, textColor=WHITE, leading=20, alignment=TA_RIGHT))
+        ]], colWidths=[65*mm, CW-65*mm])
+    header_table.setStyle(TableStyle([
+        ("BACKGROUND",(0,0),(-1,-1),PURPLE),
+        ("TOPPADDING",(0,0),(-1,-1),10),("BOTTOMPADDING",(0,0),(-1,-1),10),
+        ("LEFTPADDING",(0,0),(-1,-1),14),("RIGHTPADDING",(0,0),(-1,-1),14),
+        ("VALIGN",(0,0),(-1,-1),"MIDDLE"),
+    ]))
+    story.append(header_table)
+    story.append(Spacer(1,6))
+
+    info_bar = Table([[Paragraph(
+        f"{organisation} | Executive Report | {report_date} | {total_members} Members Assessed",
+        S("ib2", fontSize=9, textColor=WHITE, leading=13, alignment=TA_CENTER))
+        ]], colWidths=[CW])
+    info_bar.setStyle(TableStyle([
+        ("BACKGROUND",(0,0),(-1,-1),BLUE),
+        ("TOPPADDING",(0,0),(-1,-1),8),("BOTTOMPADDING",(0,0),(-1,-1),8),
+    ]))
+    story.append(info_bar)
+    story.append(Spacer(1,10))
+
+    story.append(Table([[Paragraph(
+        "CONFIDENTIAL — This report contains anonymised aggregate data. No individual scores or names are included.",
+        S("cn2", fontSize=9, textColor=PURPLE, leading=13, alignment=TA_CENTER))
+        ]], colWidths=[CW], style=TableStyle([
+        ("BACKGROUND",(0,0),(-1,-1),PURPLE_LT),
+        ("TOPPADDING",(0,0),(-1,-1),8),("BOTTOMPADDING",(0,0),(-1,-1),8),
+        ("LEFTPADDING",(0,0),(-1,-1),12),("RIGHTPADDING",(0,0),(-1,-1),12),
+        ("LINEABOVE",(0,0),(-1,0),2,PURPLE),
+    ])))
+    story.append(Spacer(1,10))
+
+    story.append(Paragraph("Cohort Summary", sH1))
+    story.append(HRFlowable(width="100%", thickness=1.5, color=PURPLE, spaceAfter=8))
+
+    score_table = Table([
+        [Paragraph("COHORT IDENTITY TRAJECTORY INDEX™", S("si3", fontName="Helvetica-Bold", fontSize=8, textColor=BLUE, leading=11, alignment=TA_CENTER)),
+         Paragraph("CLASSIFICATION", S("si4", fontName="Helvetica-Bold", fontSize=8, textColor=BLUE, leading=11, alignment=TA_CENTER))],
+        [Paragraph(str(avg_iti), sScore),
+         Paragraph(str(avg_iti_band), S("cl2", fontName="Helvetica-Bold", fontSize=20, textColor=PURPLE, leading=24, alignment=TA_CENTER))],
+        [Paragraph("cohort average out of 100", sSmall),
+         Paragraph("Cohort advancement trajectory classification", S("cd2", fontSize=8.5, textColor=MID, leading=12, alignment=TA_CENTER))],
+    ], colWidths=[CW/2-5, CW/2-5])
+    score_table.setStyle(TableStyle([
+        ("BACKGROUND",(0,0),(0,-1),PURPLE_LT),("BACKGROUND",(1,0),(1,-1),BLUE_LT),
+        ("TOPPADDING",(0,0),(-1,-1),10),("BOTTOMPADDING",(0,0),(-1,-1),10),
+        ("LEFTPADDING",(0,0),(-1,-1),10),("RIGHTPADDING",(0,0),(-1,-1),10),
+        ("GRID",(0,0),(-1,-1),0.5,BORDER),("VALIGN",(0,0),(-1,-1),"MIDDLE"),
+    ]))
+    story.append(score_table)
+    story.append(Spacer(1,12))
+
+    hw = CW/4-3
+    hl_table = Table([
+        [Paragraph(str(total_members), S("hv5", fontName="Helvetica-Bold", fontSize=22, textColor=PURPLE, leading=26, alignment=TA_CENTER)),
+         Paragraph(str(avg_iti), S("hv6", fontName="Helvetica-Bold", fontSize=22, textColor=PURPLE, leading=26, alignment=TA_CENTER)),
+         Paragraph(str(avg_avs), S("hv7", fontName="Helvetica-Bold", fontSize=22, textColor=GREEN, leading=26, alignment=TA_CENTER)),
+         Paragraph(str(avg_rss), S("hv8", fontName="Helvetica-Bold", fontSize=22, textColor=BLUE, leading=26, alignment=TA_CENTER))],
+        [Paragraph("Members\nAssessed", sSmall),
+         Paragraph("Cohort\nIdentity Trajectory Index", sSmall),
+         Paragraph("Avg Advancement\nVelocity", sSmall),
+         Paragraph("Avg Retention\nStability", sSmall)],
+    ], colWidths=[hw,hw,hw,hw])
+    hl_table.setStyle(TableStyle([
+        ("BACKGROUND",(0,0),(-1,-1),WHITE),("TOPPADDING",(0,0),(-1,-1),10),
+        ("BOTTOMPADDING",(0,0),(-1,-1),8),("GRID",(0,0),(-1,-1),0.5,BORDER),
+        ("VALIGN",(0,0),(-1,-1),"MIDDLE"),
+    ]))
+    story.append(Paragraph("Core Cohort Highlights", S("ch2", fontName="Helvetica-Bold", fontSize=10, textColor=DARK, leading=14)))
+    story.append(Spacer(1,4))
+    story.append(hl_table)
+    story.append(Spacer(1,12))
+
+    story.append(Paragraph("Cohort Trajectory Indices", sH1))
+    story.append(HRFlowable(width="100%", thickness=1.5, color=PURPLE, spaceAfter=8))
+
+    dw = [CW*0.55, CW*0.22, CW*0.23]
+    indices = [
+        ("Identity Trajectory Index™", f"{avg_iti} / 100", avg_iti_band, PURPLE),
+        ("Advancement Velocity Score", f"{avg_avs} / 100", avg_avs_band, GREEN),
+        ("Retention Stability Score", f"{avg_rss} / 100", "Stable", BLUE),
+        ("Retention Risk Score", f"{avg_rrs} / 100", avg_rrs_band, GREEN),
+        ("Identity Gap Differential", str(avg_igd), avg_igd_band, GOLD),
+    ]
+    idx_rows = [[Paragraph("Index", sTH), Paragraph("Cohort Avg Score", sTH), Paragraph("Classification", sTH)]]
+    for name, score, band, col in indices:
+        idx_rows.append([Paragraph(name, sTDb),
+            Paragraph(score, S(f"ex_is{name}", fontName="Helvetica-Bold", fontSize=9, textColor=col, leading=13, alignment=TA_CENTER)),
+            Paragraph(band, S(f"ex_ib{name}", fontSize=8.5, textColor=col, leading=13, alignment=TA_CENTER))])
+
+    idx_table = Table(idx_rows, colWidths=dw, repeatRows=1)
+    idx_table.setStyle(TableStyle([
+        ("BACKGROUND",(0,0),(-1,0),BLUE),
+        ("ROWBACKGROUNDS",(0,1),(-1,-1),[WHITE,BLUE_LT]),
+        ("TOPPADDING",(0,0),(-1,-1),8),("BOTTOMPADDING",(0,0),(-1,-1),8),
+        ("LEFTPADDING",(0,0),(-1,-1),8),("RIGHTPADDING",(0,0),(-1,-1),8),
+        ("GRID",(0,0),(-1,-1),0.4,BORDER),("VALIGN",(0,0),(-1,-1),"MIDDLE"),
+    ]))
+    story.append(idx_table)
+    story.append(Spacer(1,12))
+
+    story.append(Paragraph("Retention Risk Alert", sH1))
+    story.append(HRFlowable(width="100%", thickness=1.5, color=PURPLE, spaceAfter=8))
+
+    try:
+        total = int(total_members)
+        hfr = int(high_flight_risk)
+        pct = round((hfr / total) * 100) if total > 0 else 0
+    except:
+        hfr = 0
+        pct = 0
+
+    risk_table = Table([
+        [Paragraph("HIGH FLIGHT RISK COUNT", S("rf", fontName="Helvetica-Bold", fontSize=8, textColor=WHITE, leading=11, alignment=TA_CENTER)),
+         Paragraph("% OF COHORT AT RISK", S("rf2", fontName="Helvetica-Bold", fontSize=8, textColor=WHITE, leading=11, alignment=TA_CENTER))],
+        [Paragraph(str(hfr), S("rv", fontName="Helvetica-Bold", fontSize=28, textColor=WHITE, leading=32, alignment=TA_CENTER)),
+         Paragraph(f"{pct}%", S("rv2", fontName="Helvetica-Bold", fontSize=28, textColor=WHITE, leading=32, alignment=TA_CENTER))],
+        [Paragraph("members with Retention Risk Score >= 70", S("rs", fontSize=8, textColor=WHITE, leading=11, alignment=TA_CENTER)),
+         Paragraph("of total cohort flagged as high flight risk", S("rs2", fontSize=8, textColor=WHITE, leading=11, alignment=TA_CENTER))],
+    ], colWidths=[CW/2-5, CW/2-5])
+    risk_table.setStyle(TableStyle([
+        ("BACKGROUND",(0,0),(-1,-1),colors.HexColor("#C0392B")),
+        ("TOPPADDING",(0,0),(-1,-1),10),("BOTTOMPADDING",(0,0),(-1,-1),10),
+        ("LEFTPADDING",(0,0),(-1,-1),10),("RIGHTPADDING",(0,0),(-1,-1),10),
+        ("GRID",(0,0),(-1,-1),0.5,WHITE),("VALIGN",(0,0),(-1,-1),"MIDDLE"),
+    ]))
+    story.append(risk_table)
+    story.append(Spacer(1,12))
+
+    footer = Table([[Paragraph(
+        f"CONFIDENTIAL | Identity Trajectory Intelligence™ | © 2026 I AM WHO I SAY I AM.Global | {report_date}",
+        sFooter)]], colWidths=[CW])
     footer.setStyle(TableStyle([
         ("BACKGROUND",(0,0),(-1,-1),PURPLE),
         ("TOPPADDING",(0,0),(-1,-1),10),("BOTTOMPADDING",(0,0),(-1,-1),10),
@@ -345,10 +523,46 @@ def generate():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/generate-executive", methods=["POST"])
+def generate_executive():
+    try:
+        if request.content_type and "application/json" in request.content_type:
+            data = request.json
+        else:
+            data = request.form.to_dict()
+
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+
+        file_id = uuid.uuid4().hex
+        org_name = data.get("organisation", "Organisation").replace(" ", "_")
+        filename = f"ITI_Executive_Report_{org_name}.pdf"
+        filepath = f"/tmp/{file_id}.pdf"
+
+        generate_executive_pdf(data, filepath)
+
+        with open(filepath, "rb") as f:
+            pdf_store[file_id] = f.read()
+        os.remove(filepath)
+
+        host = request.host_url.rstrip("/")
+        pdf_url = f"{host}/download/{file_id}/{filename}"
+
+        return jsonify({
+            "success": True,
+            "pdf_url": pdf_url,
+            "filename": filename
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/download/<file_id>/<filename>", methods=["GET"])
 def download(file_id, filename):
     if file_id not in pdf_store:
         return jsonify({"error": "File not found"}), 404
+
     from flask import Response
     return Response(
         pdf_store[file_id],
