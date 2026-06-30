@@ -130,8 +130,8 @@ def generate_pdf(data, filepath):
     story = []
 
     logo_path = os.path.join(os.path.dirname(__file__), "logo.png")
-    logo_width = 55*mm
-    logo_height = 55*mm * (450/2040)
+    logo_height = 16*mm
+    logo_width = 16*mm * (2040/450)
     logo = Image(logo_path, width=logo_width, height=logo_height)
 
     header_table = Table([[logo,
@@ -339,8 +339,8 @@ def generate_executive_pdf(data, filepath):
     story = []
 
     logo_path = os.path.join(os.path.dirname(__file__), "logo.png")
-    logo_width = 55*mm
-    logo_height = 55*mm * (450/2040)
+    logo_height = 16*mm
+    logo_width = 16*mm * (2040/450)
     logo = Image(logo_path, width=logo_width, height=logo_height)
 
     header_table = Table([[logo,
