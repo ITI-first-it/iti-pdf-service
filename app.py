@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, Response
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.units import mm
@@ -9,6 +9,7 @@ import os
 import uuid
 import re
 import base64
+import json
 
 app = Flask(__name__)
 
@@ -81,6 +82,46 @@ def format_narrative(text):
     if not paragraphs:
         paragraphs.append(Paragraph(text, sBody))
     return paragraphs
+
+def upload_to_drive(filepath, filename):
+    try:
+        from googleapiclient.discovery import build
+        from googleapiclient.http import MediaFileUpload
+        from google.oauth2 import service_account
+
+        creds_json = os.environ.get("GOOGLE_CREDENTIALS")
+        folder_id = os.environ.get("GOOGLE_DRIVE_FOLDER_ID")
+
+        creds_dict = json.loads(creds_json)
+        creds = service_account.Credentials.from_service_account_info(
+            creds_dict,
+            scopes=["https://www.googleapis.com/auth/drive"]
+        )
+
+        service = build("drive", "v3", credentials=creds)
+
+        file_metadata = {
+            "name": filename,
+            "parents": [folder_id]
+        }
+
+        media = MediaFileUpload(filepath, mimetype="application/pdf")
+        file = service.files().create(
+            body=file_metadata,
+            media_body=media,
+            fields="id, webViewLink"
+        ).execute()
+
+        # Make file publicly viewable
+        service.permissions().create(
+            fileId=file["id"],
+            body={"type": "anyone", "role": "reader"}
+        ).execute()
+
+        return file.get("webViewLink")
+
+    except Exception as e:
+        raise Exception(f"Drive upload failed: {str(e)}")
 
 def generate_pdf(data, filepath):
     full_name = data.get("full_name", "Participant")
@@ -490,37 +531,31 @@ def generate():
             data = request.form.to_dict()
         if not data:
             return jsonify({"error": "No data provided"}), 400
+
         file_id = uuid.uuid4().hex
         filename = f"ITI_Report_{data.get('full_name', 'Participant').replace(' ', '_')}.pdf"
         filepath = f"/tmp/{file_id}.pdf"
+
         generate_pdf(data, filepath)
+
+        # Upload to Google Drive
+        drive_url = upload_to_drive(filepath, filename)
+
+        # Also keep in memory for backward compatibility
         with open(filepath, "rb") as f:
             pdf_store[file_id] = f.read()
         os.remove(filepath)
+
         host = request.host_url.rstrip("/")
         pdf_url = f"{host}/download/{file_id}/{filename}"
-        return jsonify({"success": True, "pdf_url": pdf_url, "filename": filename})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
 
+        return jsonify({
+            "success": True,
+            "pdf_url": pdf_url,
+            "drive_url": drive_url,
+            "filename": filename
+        })
 
-@app.route("/generate-b64", methods=["POST"])
-def generate_b64():
-    try:
-        if request.content_type and "application/json" in request.content_type:
-            data = request.json
-        else:
-            data = request.form.to_dict()
-        if not data:
-            return jsonify({"error": "No data provided"}), 400
-        filename = f"ITI_Report_{data.get('full_name', 'Participant').replace(' ', '_')}.pdf"
-        filepath = f"/tmp/{uuid.uuid4().hex}.pdf"
-        generate_pdf(data, filepath)
-        with open(filepath, "rb") as f:
-            pdf_bytes = f.read()
-        os.remove(filepath)
-        b64 = base64.b64encode(pdf_bytes).decode("utf-8")
-        return jsonify({"success": True, "base64_pdf": b64, "filename": filename, "mime_type": "application/pdf"})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -534,17 +569,30 @@ def generate_executive():
             data = request.form.to_dict()
         if not data:
             return jsonify({"error": "No data provided"}), 400
+
         file_id = uuid.uuid4().hex
         org_name = data.get("organisation", "Organisation").replace(" ", "_")
         filename = f"ITI_Executive_Report_{org_name}.pdf"
         filepath = f"/tmp/{file_id}.pdf"
+
         generate_executive_pdf(data, filepath)
+
+        drive_url = upload_to_drive(filepath, filename)
+
         with open(filepath, "rb") as f:
             pdf_store[file_id] = f.read()
         os.remove(filepath)
+
         host = request.host_url.rstrip("/")
         pdf_url = f"{host}/download/{file_id}/{filename}"
-        return jsonify({"success": True, "pdf_url": pdf_url, "filename": filename})
+
+        return jsonify({
+            "success": True,
+            "pdf_url": pdf_url,
+            "drive_url": drive_url,
+            "filename": filename
+        })
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -553,7 +601,6 @@ def generate_executive():
 def download(file_id, filename):
     if file_id not in pdf_store:
         return jsonify({"error": "File not found"}), 404
-    from flask import Response
     return Response(pdf_store[file_id], mimetype="application/pdf",
                     headers={"Content-Disposition": f"attachment; filename={filename}"})
 
