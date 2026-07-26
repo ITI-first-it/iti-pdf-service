@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file, Response
+from flask import Flask, request, jsonify, send_file
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.units import mm
@@ -8,8 +8,6 @@ from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
 import os
 import uuid
 import re
-import base64
-import json
 
 app = Flask(__name__)
 
@@ -43,6 +41,7 @@ def fmt(v):
         return str(v)
 
 def clean_narrative(text):
+    """Strip HTML tags and convert to plain text for PDF rendering."""
     text = text.replace("<br><br>", "\n\n")
     text = text.replace("<br>", "\n")
     text = re.sub(r'<[^>]+>', '', text)
@@ -51,7 +50,10 @@ def clean_narrative(text):
 def format_narrative(text):
     if not text:
         return [Paragraph("", S("empty"))]
+
+    # Clean any HTML tags first
     text = clean_narrative(text)
+
     sections = [
         "IDENTITY SNAPSHOT",
         "TRAJECTORY ANALYSIS",
@@ -59,10 +61,13 @@ def format_narrative(text):
         "ADVANCEMENT OPPORTUNITY",
         "RETENTION SIGNAL"
     ]
+
     sHeader = S("nh", fontName="Helvetica-Bold", fontSize=10, textColor=PURPLE, leading=14, spaceBefore=8, spaceAfter=4)
     sBody = S("nb", fontSize=9.5, leading=15, textColor=MID, spaceAfter=4)
+
     paragraphs = []
     current_text = text
+
     for section in sections:
         if section in current_text:
             parts = current_text.split(section, 1)
@@ -74,54 +79,17 @@ def format_narrative(text):
                         paragraphs.append(Paragraph(line, sBody))
             paragraphs.append(Paragraph(section, sHeader))
             current_text = parts[1] if len(parts) > 1 else ""
+
     if current_text.strip():
         for line in current_text.strip().split('\n'):
             line = line.strip()
             if line:
                 paragraphs.append(Paragraph(line, sBody))
+
     if not paragraphs:
         paragraphs.append(Paragraph(text, sBody))
+
     return paragraphs
-
-def upload_to_drive(filepath, filename):
-    try:
-        from googleapiclient.discovery import build
-        from googleapiclient.http import MediaFileUpload
-        from google.oauth2 import service_account
-
-        creds_json = os.environ.get("GOOGLE_CREDENTIALS")
-        folder_id = os.environ.get("GOOGLE_DRIVE_FOLDER_ID")
-
-        creds_dict = json.loads(creds_json)
-        creds = service_account.Credentials.from_service_account_info(
-            creds_dict,
-            scopes=["https://www.googleapis.com/auth/drive"]
-        )
-
-        service = build("drive", "v3", credentials=creds)
-
-        file_metadata = {
-            "name": filename,
-            "parents": [folder_id]
-        }
-
-        media = MediaFileUpload(filepath, mimetype="application/pdf")
-        file = service.files().create(
-            body=file_metadata,
-            media_body=media,
-            fields="id, webViewLink"
-        ).execute()
-
-        # Make file publicly viewable
-        service.permissions().create(
-            fileId=file["id"],
-            body={"type": "anyone", "role": "reader"}
-        ).execute()
-
-        return file.get("webViewLink")
-
-    except Exception as e:
-        raise Exception(f"Drive upload failed: {str(e)}")
 
 def generate_pdf(data, filepath):
     full_name = data.get("full_name", "Participant")
@@ -521,7 +489,6 @@ def generate_executive_pdf(data, filepath):
 
 pdf_store = {}
 
-
 @app.route("/generate", methods=["POST"])
 def generate():
     try:
@@ -529,6 +496,7 @@ def generate():
             data = request.json
         else:
             data = request.form.to_dict()
+
         if not data:
             return jsonify({"error": "No data provided"}), 400
 
@@ -538,10 +506,6 @@ def generate():
 
         generate_pdf(data, filepath)
 
-        # Upload to Google Drive
-        drive_url = upload_to_drive(filepath, filename)
-
-        # Also keep in memory for backward compatibility
         with open(filepath, "rb") as f:
             pdf_store[file_id] = f.read()
         os.remove(filepath)
@@ -552,7 +516,6 @@ def generate():
         return jsonify({
             "success": True,
             "pdf_url": pdf_url,
-            "drive_url": drive_url,
             "filename": filename
         })
 
@@ -567,6 +530,7 @@ def generate_executive():
             data = request.json
         else:
             data = request.form.to_dict()
+
         if not data:
             return jsonify({"error": "No data provided"}), 400
 
@@ -576,8 +540,6 @@ def generate_executive():
         filepath = f"/tmp/{file_id}.pdf"
 
         generate_executive_pdf(data, filepath)
-
-        drive_url = upload_to_drive(filepath, filename)
 
         with open(filepath, "rb") as f:
             pdf_store[file_id] = f.read()
@@ -589,7 +551,6 @@ def generate_executive():
         return jsonify({
             "success": True,
             "pdf_url": pdf_url,
-            "drive_url": drive_url,
             "filename": filename
         })
 
@@ -601,8 +562,13 @@ def generate_executive():
 def download(file_id, filename):
     if file_id not in pdf_store:
         return jsonify({"error": "File not found"}), 404
-    return Response(pdf_store[file_id], mimetype="application/pdf",
-                    headers={"Content-Disposition": f"attachment; filename={filename}"})
+
+    from flask import Response
+    return Response(
+        pdf_store[file_id],
+        mimetype="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
 
 
 @app.route("/health", methods=["GET"])
@@ -613,3 +579,5 @@ def health():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
+
