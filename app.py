@@ -148,7 +148,7 @@ def generate_pdf(data, filepath):
     story.append(Spacer(1,6))
 
     info_bar = Table([[Paragraph(
-        f"{full_name} | {role_level} | {organisation} | {submission_date}",
+        f"{full_name} | {submission_date}",
         S("ib", fontSize=9, textColor=WHITE, leading=13, alignment=TA_CENTER))
         ]], colWidths=[CW])
     info_bar.setStyle(TableStyle([
@@ -158,7 +158,7 @@ def generate_pdf(data, filepath):
     story.append(info_bar)
     story.append(Spacer(1,10))
 
-    story.append(Paragraph("Executive Summary", sH1))
+    story.append(Paragraph("Your Summary", sH1))
     story.append(HRFlowable(width="100%", thickness=1.5, color=PURPLE, spaceAfter=8))
 
     score_table = Table([
@@ -249,7 +249,7 @@ def generate_pdf(data, filepath):
         ("Advancement Velocity Score",f"{avs} / 100",avs_band,GREEN),
         ("Retention Stability Score",f"{rss} / 100","Stable",BLUE),
         ("Retention Risk Score",f"{rrs} / 100",rrs_band,GREEN),
-        ("Identity Gap Differential",str(igd),igd_band,GOLD),
+        ("Identity Growth Opportunity",str(igd),igd_band,GOLD),
     ]
 
     idx_rows=[[Paragraph("Index",sTH),Paragraph("Score",sTH),Paragraph("Classification",sTH)]]
@@ -267,7 +267,20 @@ def generate_pdf(data, filepath):
         ("GRID",(0,0),(-1,-1),0.4,BORDER),("VALIGN",(0,0),(-1,-1),"MIDDLE"),
     ]))
     story.append(idx_table)
-    story.append(Spacer(1,12))
+    story.append(Spacer(1,6))
+
+    story.append(Table([[Paragraph(
+        "Your Identity Growth Opportunity is the distance between who you are now and the identity "
+        "you are building toward, the room ahead of you to grow. The I AM WHO I SAY I AM™ Identity "
+        "Mastery Experience is designed to help you close it.",
+        S("go", fontSize=8.5, textColor=MID, leading=13))
+        ]], colWidths=[CW], style=TableStyle([
+        ("BACKGROUND",(0,0),(-1,-1),PURPLE_LT),
+        ("TOPPADDING",(0,0),(-1,-1),7),("BOTTOMPADDING",(0,0),(-1,-1),7),
+        ("LEFTPADDING",(0,0),(-1,-1),12),("RIGHTPADDING",(0,0),(-1,-1),12),
+        ("LINEABOVE",(0,0),(-1,0),2,GOLD),
+    ])))
+    story.append(Spacer(1,10))
 
     story.append(Paragraph("Your Personalised Identity Trajectory Intelligence Report", sH1))
     story.append(HRFlowable(width="100%", thickness=1.5, color=PURPLE, spaceAfter=8))
@@ -308,7 +321,6 @@ def generate_pdf(data, filepath):
     ]))
     story.append(footer)
     doc.build(story)
-
 
 def generate_executive_pdf(data, filepath):
     organisation = data.get("organisation", "Organisation")
@@ -428,7 +440,7 @@ def generate_executive_pdf(data, filepath):
         ("Advancement Velocity Score", f"{avg_avs} / 100", avg_avs_band, GREEN),
         ("Retention Stability Score", f"{avg_rss} / 100", "Stable", BLUE),
         ("Retention Risk Score", f"{avg_rrs} / 100", avg_rrs_band, GREEN),
-        ("Identity Gap Differential", str(avg_igd), avg_igd_band, GOLD),
+        ("Identity Growth Opportunity", str(avg_igd), avg_igd_band, GOLD),
     ]
     idx_rows = [[Paragraph("Index", sTH), Paragraph("Cohort Avg Score", sTH), Paragraph("Classification", sTH)]]
     for name, score, band, col in indices:
@@ -486,7 +498,6 @@ def generate_executive_pdf(data, filepath):
     story.append(footer)
     doc.build(story)
 
-
 pdf_store = {}
 
 @app.route("/generate", methods=["POST"])
@@ -522,7 +533,6 @@ def generate():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
 @app.route("/generate-executive", methods=["POST"])
 def generate_executive():
     try:
@@ -557,7 +567,6 @@ def generate_executive():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
 @app.route("/download/<file_id>/<filename>", methods=["GET"])
 def download(file_id, filename):
     if file_id not in pdf_store:
@@ -570,14 +579,10 @@ def download(file_id, filename):
         headers={"Content-Disposition": f"attachment; filename={filename}"}
     )
 
-
 @app.route("/health", methods=["GET"])
 def health():
     return jsonify({"status": "ok", "service": "ITI PDF Generator"})
 
-
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
-
